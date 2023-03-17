@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  python:
+    dns:
+      - 10.0.4.200
+      - 10.0.4.201
+    build:
+      args:
+        ALPINE_VERSION: "latest"
+      context: .
+      dockerfile: Containerfile
+      no_cache: true
+      tags:
+        - "python:dev"
+    image: "python:dev"
+    environment:
+      - SYSTEM_ENVIRONMENT=DEVELOPMENT
+    hostname: python
+    ports:
+      - "8080:8080"
+    volumes:
+      - "container:/mnt/volumes/container"
+      - "backup:/mnt/volumes/backup"
+        
+volumes:
+  container:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /Users/mada/Workspace/python/container-volume
+  backup:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /Users/mada/Workspace/python/backup-volume
+      
