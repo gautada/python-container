@@ -34,7 +34,7 @@ COPY entrypoint /etc/container/entrypoint
 RUN /sbin/apk add --no-cache build-base git nodejs npm openssh-client openssh python3 py3-pip yarn
 
 RUN /sbin/apk add --no-cache py3-cffi cargo linux-headers python3-dev
-RUN /sbin/apk add --no-cache py3-pandas py3-matplotlib
+RUN /sbin/apk add --no-cache py3-pandas py3-matplotlib py3-psycopg
 
 # ╭――――――――――――――――――――╮
 # │ SUDO               │
