@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  python:
+    build:
+      args:
+        ALPINE_VERSION: "latest"
+      context: .
+      dockerfile: container.build
+      tags:
+        - "python:dev"
+        - "gautada/python:dev"
+    image: "python:dev"
+    hostname: "python"
+    ports:
+      - "8080:8080"
+    volumes:
+          - "container:/mnt/volumes/container"
+          - "backup:/mnt/volumes/backup"
+    
+volumes:
+  container:
+    external: true
+    name: Container
+  backup:
+      external: true
+      name: Backup

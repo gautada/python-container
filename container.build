@@ -4,7 +4,7 @@ ARG ALPINE_VERSION=3.16.2
 # │ STAGE 1: configure-python -- Pull and configure the python environment    │
 # │                                                                           │
 # ╰―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――╯
-FROM gautada/alpine:$ALPINE_VERSION as configure-python
+FROM gautada/alpine:$ALPINE_VERSION as container
 
 # ╭――――――――――――――――――――╮
 # │ METADATA           │
@@ -27,6 +27,7 @@ COPY python.sh /etc/profile.d/python.sh
 # COPY 10-ep-container.sh /etc/container/entrypoint.d/10-ep-container.sh
 RUN /bin/rm /etc/container/entrypoint
 COPY entrypoint /etc/container/entrypoint
+COPY privileges /etc/container/privileges
 
 # ╭――――――――――――――――――――╮
 # │ PACKAGES           │
@@ -47,16 +48,20 @@ RUN /bin/ln -fsv /etc/container/wetty-wheel /etc/sudoers.d/wetty-wheel
 # ╭――――――――――――――――――――╮
 # │ USER               │
 # ╰――――――――――――――――――――╯
-ARG USER=python
+ARG USER="python"
+RUN /usr/sbin/usermod --login $USER --home /home/$USER --move-home alpine
+RUN /usr/sbin/groupmod --new-name $USER alpine
+
+# ARG USER=python
 # VOLUME /opt/$USER
-RUN /bin/mkdir -p /opt/$USER \
- && /usr/sbin/addgroup $USER \
- && /usr/sbin/adduser -D -s /bin/ash -G $USER $USER \
- && /usr/sbin/usermod -aG wheel $USER \
- && /bin/echo "$USER:$USER" | chpasswd
+# RUN /bin/mkdir -p /opt/$USER \
+#  && /usr/sbin/addgroup $USER \
+#  && /usr/sbin/adduser -D -s /bin/ash -G $USER $USER \
+#  && /usr/sbin/usermod -aG wheel $USER \
+#  && /bin/echo "$USER:$USER" | chpasswd
 # && /bin/chown $USER:$USER -R /opt/$USER
-USER $USER
-WORKDIR /home/$USER
+# USER $USER
+# WORKDIR /home/$USER
 
 # ╭――――――――――――――――――――╮
 # │ PORTS              │
@@ -77,3 +82,20 @@ RUN /usr/bin/pip3 install yfinance
 
 # COPY client.py /home/python/client.py
 # USER root
+
+
+# ╭――――――――――――――――――――╮
+# │FINAL CONTAINER     │
+# ╰――――――――――――――――――――╯
+FROM scratch
+COPY --from=container / /
+ENTRYPOINT ["/usr/bin/container-entrypoint"]
+VOLUME /mnt/volumes/backup
+VOLUME /mnt/volumes/configmaps
+VOLUME /mnt/volumes/container
+VOLUME /mnt/volumes/secrets/namespace
+VOLUME /mnt/volumes/secrets/container
+EXPOSE 8080/tcp
+USER python
+WORKDIR /home/python
+

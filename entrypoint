@@ -32,7 +32,17 @@
 # fi
 # return 0
 
-app_entrypoint() {
+# app_entrypoint() {
+#  cd /mnt/volumes/container
+#  /home/python/.local/bin/jupyter-server --port 8080 --no-browser --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password=''
+# }
+
+
+container_version() {
+ echo "0.0.0"
+}
+
+container_entrypoint() {
  cd /mnt/volumes/container
  /home/python/.local/bin/jupyter-server --port 8080 --no-browser --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password=''
 }
