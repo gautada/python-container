@@ -1,49 +1,13 @@
 ARG ALPINE_VERSION=3.16.2
-# ╭――――――――――――――――---------------------------------------------------------――╮
-# │                                                                           │
-# │ STAGE 1: configure-python -- Pull and configure the python environment    │
-# │                                                                           │
-# ╰―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――╯
+
 FROM gautada/alpine:$ALPINE_VERSION as container
 
 # ╭――――――――――――――――――――╮
 # │ METADATA           │
 # ╰――――――――――――――――――――╯
-LABEL version="2022-10-18"
 LABEL source="https://github.com/gautada/python-container.git"
 LABEL maintainer="Adam Gautier <adam@gautier.org>"
-LABEL description="Container that provides a python development environment."
-
-# ╭――――――――――――――――――――╮
-# │ ENVIRONMENT        │
-# ╰――――――――――――――――――――╯
-COPY python.sh /etc/profile.d/python.sh
-# RUN /bin/ln -s /opt/development/awscli.credentials /etc/container/configmap.d/awscli.credentials \
-# && /bin/ln -s /opt/development/awscli.config /etc/container/configmap.d/awscli.config
-
-# ╭――――――――――――――――――――╮
-# │ ENTRYPOINT         │
-# ╰――――――――――――――――――――╯
-# COPY 10-ep-container.sh /etc/container/entrypoint.d/10-ep-container.sh
-RUN /bin/rm /etc/container/entrypoint
-COPY entrypoint /etc/container/entrypoint
-COPY privileges /etc/container/privileges
-
-# ╭――――――――――――――――――――╮
-# │ PACKAGES           │
-# ╰――――――――――――――――――――╯
-RUN /sbin/apk add --no-cache build-base git nodejs npm openssh-client openssh python3 py3-pip yarn
-
-RUN /sbin/apk add --no-cache py3-cffi cargo linux-headers python3-dev
-RUN /sbin/apk add --no-cache py3-pandas py3-matplotlib py3-psycopg
-
-# ╭――――――――――――――――――――╮
-# │ SUDO               │
-# ╰――――――――――――――――――――╯
-# COPY wheel-sshd /etc/container/wheel.d/wheel-sshd
-# COPY wheel-ssh-keygen /etc/container/wheel.d/wheel-ssh-keygen
-COPY wetty-wheel /etc/container/wetty-wheel
-RUN /bin/ln -fsv /etc/container/wetty-wheel /etc/sudoers.d/wetty-wheel
+LABEL description="Python Container with Jupyter Server"
 
 # ╭――――――――――――――――――――╮
 # │ USER               │
@@ -52,21 +16,31 @@ ARG USER="python"
 RUN /usr/sbin/usermod --login $USER --home /home/$USER --move-home alpine
 RUN /usr/sbin/groupmod --new-name $USER alpine
 
-# ARG USER=python
-# VOLUME /opt/$USER
-# RUN /bin/mkdir -p /opt/$USER \
-#  && /usr/sbin/addgroup $USER \
-#  && /usr/sbin/adduser -D -s /bin/ash -G $USER $USER \
-#  && /usr/sbin/usermod -aG wheel $USER \
-#  && /bin/echo "$USER:$USER" | chpasswd
-# && /bin/chown $USER:$USER -R /opt/$USER
-# USER $USER
-# WORKDIR /home/$USER
+# ╭――――――――――――――――――――╮
+# │ APPLICATION        │
+# ╰――――――――――――――――――――╯
+ARG CONTAINER_VERSION="0.0.0"
+ARG PYTHON_VERSION=$CONTAINER_VERSION
+
+RUN /sbin/apk add --no-cache build-base git nodejs npm openssh-client openssh python3 py3-pip yarn
+RUN /sbin/apk add --no-cache py3-cffi cargo linux-headers python3-dev
+RUN /sbin/apk add --no-cache py3-pandas py3-matplotlib py3-psycopg
 
 # ╭――――――――――――――――――――╮
-# │ PORTS              │
+# │ STANDARD CONFIG    │
 # ╰――――――――――――――――――――╯
-EXPOSE 8080
+# COPY backup /etc/container/backup
+# COPY podman.health /etc/container/health.d/podman.health
+COPY entrypoint /etc/container/entrypoint
+COPY privileges /etc/container/privileges
+# COPY setup /etc/container/setup
+
+# ╭――――――――――――――――――――╮
+# │ ENVIRONMENT        │
+# ╰――――――――――――――――――――╯
+# COPY python.sh /etc/profile.d/python.sh
+# RUN /bin/ln -s /opt/development/awscli.credentials /etc/container/configmap.d/awscli.credentials \
+# && /bin/ln -s /opt/development/awscli.config /etc/container/configmap.d/awscli.config
 
 # ╭――――――――――――――――――――╮
 # │ CONFIGURE          │
@@ -74,15 +48,13 @@ EXPOSE 8080
 # RUN /usr/bin/pip3 install --upgrade pip \
 #  && /usr/bin/yarn global add wetty
 
+USER python
 RUN /usr/bin/pip3 install jupyterlab 
 RUN /usr/bin/pip3 install yfinance 
+USER root
 
 # RUN /usr/bin/pip3 install pandas-datareader
 # RUN /usr/bin/pip3 install matplotlib
-
-# COPY client.py /home/python/client.py
-# USER root
-
 
 # ╭――――――――――――――――――――╮
 # │FINAL CONTAINER     │

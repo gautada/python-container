@@ -3,6 +3,7 @@ services:
   python:
     build:
       args:
+        CONTAINER_VERSION: "0.0.0"
         ALPINE_VERSION: "latest"
       context: .
       dockerfile: container.build
