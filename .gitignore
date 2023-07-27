@@ -21,3 +21,5 @@ manifest/
 # symlink to this files `ln -s .gitignore .dockerignore`
 .dockerignore
 
+# Nova editor configuration files.
+*.nova/
