@@ -11,6 +11,6 @@ container_version() {
 }
 
 container_entrypoint() {
- cd $HOME/server
- /home/python/.local/bin/jupyter-server --port 8080 --no-browser --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*'
+ cd $HOME/jupyter
+ /home/python/.local/bin/jupyter-server -y --port 8080 --no-browser --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*'
 }

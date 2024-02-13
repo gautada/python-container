@@ -52,7 +52,8 @@ RUN /sbin/apk add --no-cache py3-pandas py3-matplotlib py3-psycopg
 USER $USER
 RUN /usr/bin/pip3 install jupyterlab --break-system-packages
 RUN /usr/bin/pip3 install yfinance --break-system-packages
-RUN /bin/ln -fsv /mnt/volumes/container /home/$USER/server
+RUN /usr/bin/pip3 cache purge
+RUN /bin/ln -fsv /mnt/volumes/container /home/$USER/jupyter
 VOLUME /mnt/volumes/backup
 VOLUME /mnt/volumes/configmaps
 VOLUME /mnt/volumes/container
