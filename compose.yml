@@ -3,25 +3,39 @@ services:
   python:
     build:
       args:
-        CONTAINER_VERSION: "0.0.0"
         ALPINE_VERSION: "latest"
+        CONTAINER_VERSION: "3.11.7"
+        PYTHON_VERSION: "3.11.7"
+        PYTHON_RELEASE: "r1"
       context: .
       dockerfile: container.build
       tags:
-        - "python:dev"
-        - "gautada/python:dev"
-    image: "python:dev"
+        - "python:build"
+        - "gautada/python:build"
+        - "gautada/python:latest"
+    image: "gautada/python:latest"
     hostname: "python"
     ports:
       - "8080:8080"
     volumes:
-          - "container:/mnt/volumes/container"
-          - "backup:/mnt/volumes/backup"
-    
+      - "Container:/mnt/volumes/container"
+      - "Backup:/mnt/volumes/backup"
+      - "Configmaps:/mnt/volumes/configmaps"
+      - "Secrets:/mnt/volumes/secrets"
+          
 volumes:
-  container:
+  Container:
     external: true
-    name: Container
-  backup:
-      external: true
-      name: Backup
+    name: "Container"
+
+  Backup:
+    external: true
+    name: "Backup"
+
+  Configmaps:
+    external: true
+    name: "Configmaps"
+
+  Secrets:
+    external: true
+    name: "Secrets"

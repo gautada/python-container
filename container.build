@@ -9,65 +9,52 @@ LABEL source="https://github.com/gautada/python-container.git"
 LABEL maintainer="Adam Gautier <adam@gautier.org>"
 LABEL description="Python Container with Jupyter Server"
 
-# ╭――――――――――――――――――――╮
-# │ USER               │
-# ╰――――――――――――――――――――╯
-ARG USER="python"
-RUN /usr/sbin/usermod --login $USER --home /home/$USER --move-home alpine
-RUN /usr/sbin/groupmod --new-name $USER alpine
+
+# ╭―
+# │ USER
+# ╰――――――――――――――――――――
+ARG USER=python
+RUN /usr/sbin/usermod -l $USER alpine
+RUN /usr/sbin/usermod -d /home/$USER -m $USER
+RUN /usr/sbin/groupmod -n $USER alpine
+RUN /bin/echo "$USER:$USER" | /usr/sbin/chpasswd
+
+
+# ╭―
+# │ PRIVILEGES
+# ╰――――――――――――――――――――
+# COPY privileges /etc/container/privileges
+
+# ╭―
+# │ BACKUP
+# ╰――――――――――――――――――――
+# COPY backup /etc/container/backup
+
+
+# ╭―
+# │ ENTRYPOINT
+# ╰――――――――――――――――――――
+COPY entrypoint /etc/container/entrypoint
 
 # ╭――――――――――――――――――――╮
 # │ APPLICATION        │
 # ╰――――――――――――――――――――╯
-ARG CONTAINER_VERSION="0.0.0"
-ARG PYTHON_VERSION=$CONTAINER_VERSION
-
-RUN /sbin/apk add --no-cache build-base git nodejs npm openssh-client openssh python3 py3-pip yarn
-RUN /sbin/apk add --no-cache py3-cffi cargo linux-headers python3-dev
+# git nodejs npm openssh-client openssh 
+# cargo
+RUN /sbin/apk add --no-cache build-base python3 py3-pip
+RUN /sbin/apk add --no-cache py3-cffi python3-dev linux-headers
 RUN /sbin/apk add --no-cache py3-pandas py3-matplotlib py3-psycopg
 
-# ╭――――――――――――――――――――╮
-# │ STANDARD CONFIG    │
-# ╰――――――――――――――――――――╯
-# COPY backup /etc/container/backup
-# COPY podman.health /etc/container/health.d/podman.health
-COPY entrypoint /etc/container/entrypoint
-COPY privileges /etc/container/privileges
-# COPY setup /etc/container/setup
 
 # ╭――――――――――――――――――――╮
-# │ ENVIRONMENT        │
+# │ CONTAINER          │
 # ╰――――――――――――――――――――╯
-# COPY python.sh /etc/profile.d/python.sh
-# RUN /bin/ln -s /opt/development/awscli.credentials /etc/container/configmap.d/awscli.credentials \
-# && /bin/ln -s /opt/development/awscli.config /etc/container/configmap.d/awscli.config
-
-# ╭――――――――――――――――――――╮
-# │ CONFIGURE          │
-# ╰――――――――――――――――――――╯
-# RUN /usr/bin/pip3 install --upgrade pip \
-#  && /usr/bin/yarn global add wetty
-
-USER python
-RUN /usr/bin/pip3 install jupyterlab 
-RUN /usr/bin/pip3 install yfinance 
-USER root
-
-# RUN /usr/bin/pip3 install pandas-datareader
-# RUN /usr/bin/pip3 install matplotlib
-
-# ╭――――――――――――――――――――╮
-# │FINAL CONTAINER     │
-# ╰――――――――――――――――――――╯
-FROM scratch
-COPY --from=container / /
-ENTRYPOINT ["/usr/bin/container-entrypoint"]
+USER $USER
+RUN /usr/bin/pip3 install jupyterlab --break-system-packages
+RUN /usr/bin/pip3 install yfinance --break-system-packages
+RUN /bin/ln -fsv /mnt/volumes/container /home/$USER/server
 VOLUME /mnt/volumes/backup
 VOLUME /mnt/volumes/configmaps
 VOLUME /mnt/volumes/container
-VOLUME /mnt/volumes/secrets/namespace
-VOLUME /mnt/volumes/secrets/container
-EXPOSE 8080/tcp
-USER python
-WORKDIR /home/python
-
+VOLUME /mnt/volumes/secrets
+WORKDIR /home/$USER

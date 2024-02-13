@@ -7,10 +7,10 @@
 #             [gist](https://gist.github.com/gautada/f185700af585a50b3884ad10c2b02f98)
 
 container_version() {
- echo "0.0.0"
+ /usr/bin/python --version | awk -F ' ' '{print $2}'
 }
 
 container_entrypoint() {
- cd /mnt/volumes/container
- /home/python/.local/bin/jupyter-server --port 8080 --no-browser --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password=''
+ cd $HOME/server
+ /home/python/.local/bin/jupyter-server --port 8080 --no-browser --ip 0.0.0.0 --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.allow_origin='*'
 }
